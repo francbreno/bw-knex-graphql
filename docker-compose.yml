@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo
+  pg: 
+    image: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: mySecret123
+    ports:
+      - "5432:5432"
+    volumes: 
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./db/data.sql:/docker-entrypoint-initdb.d/1-data.sql
+
