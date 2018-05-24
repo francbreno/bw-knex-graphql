@@ -8,6 +8,6 @@ module.exports = () => knex({
     password : 'mySecret123',
     database : 'admin'
   },
-  debug: process.ENV === 'debug',
+  debug: process.env.NODE_ENV === 'development',
 });
 
