@@ -23,7 +23,8 @@ const services = {
 };
 
 const SERVER_PORT = process.env.SERVER_PORT || 3000;
-const devMode = process.env.NODE_ENV === 'development';
+const mode = process.env.NODE_ENV || 'development';
+const isDev = process.env.NODE_ENV === 'development';
 
 const app = express();
 
@@ -40,14 +41,13 @@ const graphqlMiddleware = () => {
   return graphqlExpress({
     schema,
     context: {services, loaders},
-    debug: devMode
+    debug: isDev
   });
 }
 
 function startGraphqlServer(server) {
-  console.log(devMode);
   const middlewares = [bodyParser.json()]
-  devMode && middlewares.push(knexLogger(db))
+  isDev && middlewares.push(knexLogger(db))
   middlewares.push(graphqlMiddleware());
 
   server.use(
