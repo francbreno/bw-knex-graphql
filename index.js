@@ -28,29 +28,30 @@ const isDev = process.env.NODE_ENV === 'development';
 
 const app = express();
 
-const graphqlMiddleware = () => {
-  return (req, res, next) => {
-    const loaders = {
-      usersByIds: new Dataloader(usersService.getUsersByIdList),
-      accountsByUserIds: new Dataloader(accountsService.getAccountsByUserIdList),
-      accountsByIds: new Dataloader(accountsService.getAccountsByIdList),
-      entriesByAccountIds: new Dataloader(entriesService.getEntriesByAccountIdList),
-      transactionsByIds: new Dataloader(transactionsService.getTransactionByOriginAccountIdList),
-      transactionByEntryIds: new Dataloader(transactionsService.getTransactionByEntryIdList),
-    };
-
-    graphqlExpress({
-      schema,
-      context: {services, loaders},
-      debug: isDev
-    })(req, res, next)
+const setGraphqlDataloaders = (req, res, next) => {
+  req.dataloaders = {
+    usersByIds: new Dataloader(usersService.getUsersByIdList),
+    accountsByUserIds: new Dataloader(accountsService.getAccountsByUserIdList),
+    accountsByIds: new Dataloader(accountsService.getAccountsByIdList),
+    entriesByAccountIds: new Dataloader(entriesService.getEntriesByAccountIdList),
+    transactionsByIds: new Dataloader(transactionsService.getTransactionByOriginAccountIdList),
+    transactionByEntryIds: new Dataloader(transactionsService.getTransactionByEntryIdList),
   };
-}
+
+  next();
+};
+
+const graphqlMiddleware = graphqlExpress((req, res) => ({
+    schema,
+    context: {services, loaders: req.dataloaders},
+    debug: isDev
+  }));
 
 function startGraphqlServer(server) {
   const middlewares = [bodyParser.json()]
   isDev && middlewares.push(knexLogger(db))
-  middlewares.push(graphqlMiddleware());
+  middlewares.push(setGraphqlDataloaders);
+  middlewares.push(graphqlMiddleware);
 
   server.use(
     '/graphql',
