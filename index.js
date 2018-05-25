@@ -29,20 +29,22 @@ const isDev = process.env.NODE_ENV === 'development';
 const app = express();
 
 const graphqlMiddleware = () => {
-  const loaders = {
-    usersByIds: new Dataloader(usersService.getUsersByIdList),
-    accountsByUserIds: new Dataloader(accountsService.getAccountsByUserIdList),
-    accountsByIds: new Dataloader(accountsService.getAccountsByIdList),
-    entriesByAccountIds: new Dataloader(entriesService.getEntriesByAccountIdList),
-    transactionsByIds: new Dataloader(transactionsService.getTransactionByOriginAccountIdList),
-    transactionByEntryIds: new Dataloader(transactionsService.getTransactionByEntryIdList),
+  return (req, res, next) => {
+    const loaders = {
+      usersByIds: new Dataloader(usersService.getUsersByIdList),
+      accountsByUserIds: new Dataloader(accountsService.getAccountsByUserIdList),
+      accountsByIds: new Dataloader(accountsService.getAccountsByIdList),
+      entriesByAccountIds: new Dataloader(entriesService.getEntriesByAccountIdList),
+      transactionsByIds: new Dataloader(transactionsService.getTransactionByOriginAccountIdList),
+      transactionByEntryIds: new Dataloader(transactionsService.getTransactionByEntryIdList),
+    };
+
+    graphqlExpress({
+      schema,
+      context: {services, loaders},
+      debug: isDev
+    })(req, res, next)
   };
-  
-  return graphqlExpress({
-    schema,
-    context: {services, loaders},
-    debug: isDev
-  });
 }
 
 function startGraphqlServer(server) {
